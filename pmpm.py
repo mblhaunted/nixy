@@ -17,6 +17,7 @@ class Pmpm(object):
     def _verify_local_repo(self):
         home = os.path.expanduser('~')
         repo_dir = '{}/.pmpm/localrepo'.format(home)
+        os.system('export NIX_PATH=custompkgs={}/default.nix:$NIX_PATH'.format(repo_dir))
         if os.path.exists('{}/.pmpm'.format(home)) is False:
             self._out('no pmpm directory exists, creating ...')
             proc = subprocess.run(['mkdir', '-p', '{}/.pmpm/'.format(home)])
