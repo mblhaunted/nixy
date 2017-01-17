@@ -17,7 +17,7 @@ class Pmpm(object):
     def _verify_local_repo(self):
         home = os.path.expanduser('~')
         repo_dir = '{}/.pmpm/localrepo'.format(home)
-        os.system('export NIX_PATH=custompkgs={}/default.nix:$NIX_PATH'.format(repo_dir))
+        os.system('export NIX_PATH=localpkgs={}/default.nix:$NIX_PATH'.format(repo_dir))
         if os.path.exists('{}/.pmpm'.format(home)) is False:
             self._out('no pmpm directory exists, creating ...')
             proc = subprocess.run(['mkdir', '-p', '{}/.pmpm/'.format(home)])
@@ -107,7 +107,7 @@ class Pmpm(object):
         self._process_package(pkg_json)
 
     def _process_package(self, pkg_json):
-        pkg_template = open('package.nix', 'r').readlines()
+        pkg_template = [x.strip() for x in open('package.nix', 'r').readlines()]
         src = pkg_json['src']
         pkg_template[4] = '  version = "{}";'.format(pkg_json['version'])
         pkg_template[5] = '  name = "{}'.format(pkg_json['name'])
@@ -122,14 +122,14 @@ class Pmpm(object):
         builder_index = 0
         for line in pkg_template:
             if 'builder =' in line:
-                builder_index = pkg_template.index(line) + 1
+                builder_index = pkg_template.index(line) + 2
         if pkg_json['bld'].get('script'):
             for step in pkg_json['bld']['script']:
                 pkg_template.insert(builder_index, '    {}'.format(step))
                 builder_index += 1
         else:
-            del(pkg_template[builder_index-1:builder_index+2])
-            pkg_template.insert(builder_index-1, '  builder = {}'.format(pkg_json['bld']['fp']))
+            del(pkg_template[builder_index-2:builder_index+2])
+            pkg_template.insert(builder_index-2, '  builder = {}'.format(pkg_json['bld']['fp']))
         line = pkg_template[0]
         end = line.index(':')
         new_line = line[:end-2]
@@ -147,10 +147,6 @@ class Pmpm(object):
         self._write_package(pkg_template, pkg_json)
 
     def _write_package(self, pkg_template, pkg_json):
-        '''
-            write stuff into .pmpm/localrepo/pkgs/name
-            update .pmpm/localrepo/default.nix self section to callPackage on new thing
-        '''
         home = os.path.expanduser('~')
         repo_dir = '{}/.pmpm/localrepo'.format(home)
         pkg_name = pkg_json['name']
@@ -164,13 +160,18 @@ class Pmpm(object):
         base_nix_fp = '{}/default.nix'.format(repo_dir)
         base_nix = open(base_nix_fp, 'r').readlines()
         self_index = 0
+        abort_write = False
         for line in base_nix:
             if 'self = {' in line:
                 self_index = base_nix.index(line)
+            if pkg_json['name'] in line and 'callPackage' in line:
+                abort_write = True
         pkg_insert = '    {0} = callPackage ./pkgs/{1} {{ }};'.format(pkg_json['name'], pkg_json['name'])
         base_nix.insert(self_index+1, pkg_insert)
-        with open(base_nix_fp, 'w') as bn_fp:
-            bn_fp.write('\n'.join(base_nix))
+        if not abort_write:
+            with open(base_nix_fp, 'w') as bn_fp:
+                bn_fp.write('\n'.join(base_nix))
+        proc = subprocess.run(['nix-env', '-f', "<localpkgs>", '-iA', pkg_json['name']])
  
     def _execute(self):
         if self._args.version:

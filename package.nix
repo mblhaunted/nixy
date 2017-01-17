@@ -11,7 +11,9 @@ stdenv.mkDerivation rec {
   };
 
   builder = builtins.toFile "builder.sh" "
-    
+    source $stdenv/setup
+
+    mkdir -p $out
     ";
 
   meta = {
@@ -19,7 +21,7 @@ stdenv.mkDerivation rec {
     longDescription = '' '';
     homepage = "";
     license = stdenv.lib.licenses.gpl2;
-    platforms = stdenv.lib.platforms.linux;
+    platforms = stdenv.lib.platforms.all;
   };
 
 }
