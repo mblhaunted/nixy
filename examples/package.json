@@ -1,16 +1,15 @@
 {
     "depends": {
-        "stdenv": "latest",
-        "fetchurl": "latest"
+        "stdenv": "latest"
     },
     "version": "0.0.0",
-    "name": "default",
-    "url": "default",
-    "url_sha256": "default",
-    "short_desc": "default",
-    "long_desc": "default",
-    "homepage": "default",
+    "name": "",
+    "src": "",
+    "src_sha256": "",
+    "short_desc": "",
+    "long_desc": "",
+    "homepage": "",
     "license": "gpl2",
     "platforms": ["linux"],
-    "builder_cmds": [],
+    "builder_cmds": ["none"]
 }

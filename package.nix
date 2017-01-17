@@ -1,10 +1,10 @@
-{ stdenv, fetchurl,
-}:
+{ stdenv, fetchurl }:
 
 stdenv.mkDerivation rec {
+
   version = "";
   name = "";
-
+  
   src = fetchurl {
     url = "";
     sha256 = "";
@@ -16,10 +16,10 @@ stdenv.mkDerivation rec {
 
   meta = {
     description = "";
-    longDescription = ''
-      '';
+    longDescription = '' '';
     homepage = "";
     license = stdenv.lib.licenses.gpl2;
     platforms = stdenv.lib.platforms.linux;
   };
+
 }
