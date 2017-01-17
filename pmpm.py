@@ -208,7 +208,7 @@ class Pmpm(object):
         self._out('---')
         self._out('locally installed')
         self._out('---')
-        local_cmd = ['nix-env', '-qP', '--description', '{}'.format(search_string)]
+        local_cmd = ['nix-env', '-qP', '--description', '{}'.format(search_str)]
         proc = subprocess.run(local_cmd)
         if self._args.local:
             return
