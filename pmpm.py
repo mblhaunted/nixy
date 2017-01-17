@@ -166,7 +166,6 @@ class Pmpm(object):
         for line in base_nix:
             if 'self = {' in line:
                 self_index = base_nix.index(line)
-            print('{0}:{1}'.format(base_nix.index(line), line))
         pkg_insert = '    {0} = callPackage ./pkgs/{1} {{ }};'.format(pkg_json['name'], pkg_json['name'])
         base_nix.insert(self_index+1, pkg_insert)
         with open(base_nix_fp, 'w') as bn_fp:

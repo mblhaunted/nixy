@@ -3,12 +3,12 @@
         "stdenv": "latest"
     },
     "version": "0.0.0",
-    "name": "",
-    "src": "",
-    "src_sha256": "",
-    "short_desc": "",
-    "long_desc": "",
-    "homepage": "",
+    "name": "default",
+    "src": "default",
+    "src_sha256": "default",
+    "short_desc": "default",
+    "long_desc": "default",
+    "homepage": "default",
     "license": "gpl2",
     "platforms": ["linux"],
     "bld": {
