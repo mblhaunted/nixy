@@ -8,4 +8,4 @@ let
    self = {
                                                                         
    };                                                                                   
-   in self
+   in self // pkgs

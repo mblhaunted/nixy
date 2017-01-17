@@ -194,17 +194,17 @@ class Pmpm(object):
         if target is None:
             self._out('no install target specified')
             return
-        proc = subprocess.run(['nix-env', '-f', "<localpkgs>", '--install', target])
+        proc = subprocess.run(['nix-env', '-f', "<localpkgs>", '-f', "<nixpkgs>", '--install', target])
 
     def _uninstall(self):
         target = self._args.OPTS
         if target is None:
             self._out('no uninstall target specified')
             return
-        proc = subprocess.run(['nix-env', '-f', "<localpkgs>", '--uninstall', target])
+        proc = subprocess.run(['nix-env', '-f', "<localpkgs>", '-f', "<nixpkgs>", '--uninstall', target])
 
     def _search(self):
-        search_string = self._args.OPTS
+        search_str = self._args.OPTS
         self._out('---')
         self._out('locally installed')
         self._out('---')
@@ -215,8 +215,8 @@ class Pmpm(object):
         self._out('---')
         self._out('available')
         self._out('---')
-        global_cmd = ['nix-env', '-qaP', '--description', '{}'.format(search_string)]
-        proc = subprocess.run(global_cmd)
+        cmd = ['nix-env', '-qaP', '-f', "<localpkgs>", '--description', '{}'.format(search_str)]
+        proc = subprocess.run(cmd)
 
     def _process_args(self):
         self._arg_parser = argparse.ArgumentParser()
