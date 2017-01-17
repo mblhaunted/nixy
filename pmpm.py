@@ -17,8 +17,20 @@ class Pmpm(object):
             print('no pmpm directory exists, creating ...')
             proc = subprocess.run(['mkdir', '-p', '{}/.pmpm/'.format(home)])
             proc = subprocess.run(['mkdir', '-p', '{}/.pmpm/localrepo'.format(home)])
+            proc = subprocess.run(['mkdir', '-p', '{}/.pmpm/pkgs'.format(home)])
             proc = subprocess.run(['cp', './base.nix', '{}/default.nix'.format(repo_dir)])
         
+    def _package(self):
+        '''
+            package points to a directory with a json file
+            that json file hooks it all up
+        '''
+        package_dir = self._args.OPTS
+        if os.path.exists(package_dir) is True:
+            print('good')
+        else:
+            print('package directory does not exist')
+
     def _execute(self):
         if self._args.version:
             print('pmpm v{}'.format(self._VERSION))
@@ -29,7 +41,7 @@ class Pmpm(object):
         elif cmd == 'uninstall':
             self._uninstall()
         elif cmd == 'package':
-            elf._package()
+            self._package()
         elif cmd == 'search':
             self._search()
         else:
@@ -50,8 +62,8 @@ class Pmpm(object):
         self._arg_parser = argparse.ArgumentParser()
         self._arg_parser.add_argument('COMMAND', nargs='?')
         self._arg_parser.add_argument('OPTS', nargs='?')
-        self._arg_parser.add_argument('-d', '--dry', help='dry run', action='store_true')
-        self._arg_parser.add_argument('-l', '--local', help='apply locally', action='store_true')
+        self._arg_parser.add_argument('-d', '--dry', help='run dry', action='store_true')
+        self._arg_parser.add_argument('-l', '--local', help='run local', action='store_true')
         self._arg_parser.add_argument(
                 '--version',
                 help='print version',
