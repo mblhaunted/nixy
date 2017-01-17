@@ -158,7 +158,7 @@ class Pmpm(object):
         self._out('done writing package content ...')
         self._out('updating localrepo registry to include new package ...')
         base_nix_fp = '{}/default.nix'.format(repo_dir)
-        base_nix = open(base_nix_fp, 'r').readlines()
+        base_nix = [x.strip() for x in open(base_nix_fp, 'r').readlines()]
         self_index = 0
         abort_write = False
         for line in base_nix:
@@ -188,6 +188,20 @@ class Pmpm(object):
             self._search()
         else:
             self._arg_parser.print_help()
+
+    def _install(self):
+        target = self._args.OPTS
+        if target is None:
+            self._out('no install target specified')
+            return
+        proc = subprocess.run(['nix-env', '-f', "<localpkgs>", '--install', target])
+
+    def _uninstall(self):
+        target = self._args.OPTS
+        if target is None:
+            self._out('no uninstall target specified')
+            return
+        proc = subprocess.run(['nix-env', '-f', "<localpkgs>", '--uninstall', target])
 
     def _search(self):
         search_string = self._args.OPTS
