@@ -21,7 +21,7 @@ class Pmpm(object):
             self._out('no pmpm directory exists, creating ...')
             proc = subprocess.run(['mkdir', '-p', '{}/.pmpm/'.format(home)])
             proc = subprocess.run(['mkdir', '-p', '{}/.pmpm/localrepo'.format(home)])
-            proc = subprocess.run(['mkdir', '-p', '{}/.pmpm/pkgs'.format(home)])
+            proc = subprocess.run(['mkdir', '-p', '{}/.pmpm/localrepo/pkgs'.format(home)])
             proc = subprocess.run(['cp', './base.nix', '{}/default.nix'.format(repo_dir)])
 
     def _package_from_scratch(self):
@@ -86,17 +86,9 @@ class Pmpm(object):
         return p_pkg
 
     def _package(self):
-        '''
-            package points to a directory with a json file
-            that json file hooks it all up
-            
-            TODO
-            allow builder
-        '''
         pkg_dir = self._args.OPTS
         pkg_json_fp = '{}package.json'.format(pkg_dir)
         pkg_json = {}
-
         if self._args.prompt:
             pkg_json = self._package_from_scratch()
         else:
@@ -111,14 +103,14 @@ class Pmpm(object):
                     self._out('no package.json found for {}'.format(pkg_dir))
             else:
                 self._out('package directory does not exist')
-
         self._process_package(pkg_json)
 
     def _process_package(self, pkg_json):
         pkg_template = open('package.nix', 'r').readlines()
         src = pkg_json['src']
         pkg_template[4] = '  version = "{}";'.format(pkg_json['version'])
-        pkg_template[5] = '  name = "{}";'.format(pkg_json['name'])
+        pkg_template[5] = '  name = "{}'.format(pkg_json['name'])
+        pkg_template[5] += '-${version}";'
         if not 'http' in src:
             pkg_template[0] = '{ stdenv }:'
             del(pkg_template[7:11])
@@ -152,6 +144,21 @@ class Pmpm(object):
         pkg_template[meta_index+2] = '    longDescription = "{}";'.format(pkg_json['meta']['long_desc'])
         pkg_template[meta_index+3] = '    homepage = "{}";'.format(pkg_json['meta']['homepage'])
         self._write_package(pkg_template, pkg_json)
+
+    def _write_package(self, pkg_template, pkg_json):
+        '''
+            write stuff into .pmpm/localrepo/pkgs/name
+            update .pmpm/localrepo/default.nix self section to callPackage on new thing
+        '''
+        home = os.path.expanduser('~')
+        repo_dir = '{}/.pmpm/localrepo'.format(home)
+        pkg_name = pkg_json['name']
+        dest_dir = '{0}/pkgs/{1}'.format(repo_dir, pkg_name)
+        self._out('creating new package {} in localrepo ...'.format(pkg_name))
+        proc = subprocess.run(['mkdir', '-p', '{}'.format(dest_dir)])
+        with open('{}/default.nix'.format(dest_dir), 'w') as pkg_fp:
+            pkg_fp.write('\n'.join(pkg_template))
+        self._out('done.')
         
     def _execute(self):
         if self._args.version:
