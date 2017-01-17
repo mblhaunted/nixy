@@ -26,8 +26,11 @@ class Pmpm(object):
             that json file hooks it all up
         '''
         package_dir = self._args.OPTS
-        if os.path.exists(package_dir) is True:
-            print('good')
+        if os.path.exists(package_dir):
+            if os.path.exists('{}/package.json'.format(package_dir)):
+                print('good')
+            else:
+                print('no package.json found for {}'.format(package_dir))
         else:
             print('package directory does not exist')
 
@@ -49,12 +52,12 @@ class Pmpm(object):
 
     def _search(self):
         search_string = self._args.OPTS
-        print('\n-\nlocally installed\n-\n')
+        print('\n---\nlocally installed\n---\n')
         local_cmd = ['nix-env', '-qP', '--description', '{}'.format(search_string)]
         proc = subprocess.run(local_cmd)
         if self._args.local:
             return
-        print('\n-\nglobal results\n-\n')
+        print('\n---\nglobal results\n---\n')
         global_cmd = ['nix-env', '-qaP', '--description', '{}'.format(search_string)]
         proc = subprocess.run(global_cmd)
 
