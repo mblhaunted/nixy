@@ -27,17 +27,13 @@ class Pmpm(object):
 
     def _search(self):
         search_string = self._args.OPTS
-        print('-')
-        print('locally installed')
-        print('-')
-        local_cmd = ['nix-env', '-q', '--description', '{}'.format(search_string)]
+        print('\n-\nlocally installed\n-\n')
+        local_cmd = ['nix-env', '-qP', '--description', '{}'.format(search_string)]
         proc = subprocess.run(local_cmd)
         if self._args.local:
             return
-        print('-')
-        print('global results')
-        print('-')
-        global_cmd = ['nix-env', '-qa', '--description', '{}'.format(search_string)]
+        print('\n-\nglobal results\n-\n')
+        global_cmd = ['nix-env', '-qaP', '--description', '{}'.format(search_string)]
         proc = subprocess.run(global_cmd)
 
     def _process_args(self):
