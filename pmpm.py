@@ -30,14 +30,33 @@ class Pmpm(object):
             that json file hooks it all up
             
             TODO
-            if "src" in JSON has http or HTTPS, thats a fetchurl that needs
-            to customize the json.
-            1) "depends" needs fetchurl added
-            2) fetchurl {} section is added w/ source url and sha256
-
+            allow builder
         '''
         pkg_dir = self._args.OPTS
         pkg_json_fp = '{}package.json'.format(pkg_dir)
+
+        if self._args.prompt:
+            self._out('packaging from scratch ...')
+            p_pkg = {}
+            p_pkg['depends'] = input('depends on?  pkg:ver|hash,pkg:ver|hash: ')
+            p_pkg['name'] = input('package name: ')
+            p_pkg['version'] = input('package version: ')
+            p_pkg['src'] = input('source path or url: ')
+            if 'http' in p_pkg['src'].lower():
+                p_pkg['src_sha256'] = ('source sha256: ')
+            p_pkg['meta'] = {}
+            p_pkg['meta']['desc'] = input('short description: ')
+            p_pkg['meta']['long_desc'] = input('long description: ')
+            p_pkg['meta']['homepage'] = input('project url: ')
+            p_pkg['bld'] = {}
+            p_pkg['bld']['steps'] = True if input('build steps? [y/n]: ').lower() == 'y' else False
+            if p_pkg['bld']['steps'] is False:
+                p_pkg['bld']['fp'] = input('path to build file: ')
+            else:
+                # TODO build steps
+                pass
+            return
+
         if os.path.exists(pkg_dir):
             if os.path.exists(pkg_json_fp):
                 try:
@@ -52,6 +71,14 @@ class Pmpm(object):
             self._out('package directory does not exist')
 
     def _process_package(self, pkg_json):
+        '''            
+            TODO
+            if "src" in JSON has http or HTTPS, thats a fetchurl that needs
+            to customize the json.
+            1) "depends" needs fetchurl added
+            2) fetchurl {} section is added w/ source url and sha256
+
+        '''
         self._out(pkg_json)
 
     def _execute(self):
@@ -90,6 +117,7 @@ class Pmpm(object):
         self._arg_parser.add_argument('COMMAND', nargs='?')
         self._arg_parser.add_argument('OPTS', nargs='?')
         self._arg_parser.add_argument('-d', '--dry', help='run dry', action='store_true')
+        self._arg_parser.add_argument('-p', '--prompt', help='prompt mode', action='store_true')
         self._arg_parser.add_argument('-l', '--local', help='run local', action='store_true')
         self._arg_parser.add_argument(
                 '--version',
