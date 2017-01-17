@@ -23,7 +23,60 @@ class Pmpm(object):
             proc = subprocess.run(['mkdir', '-p', '{}/.pmpm/localrepo'.format(home)])
             proc = subprocess.run(['mkdir', '-p', '{}/.pmpm/pkgs'.format(home)])
             proc = subprocess.run(['cp', './base.nix', '{}/default.nix'.format(repo_dir)])
-        
+
+    def _package_from_scratch(self):
+        self._out('packaging from scratch ...')
+        p_pkg = {}
+        p_pkg['depends'] = input('depends on?  pkg:ver|hash,pkg:ver|hash: ')
+        p_pkg['name'] = input('package name: ')
+        p_pkg['version'] = input('package version: ')
+        p_pkg['src'] = input('source path or url: ')
+        if 'http' in p_pkg['src'].lower():
+            p_pkg['src_sha256'] = input('source sha256: ')
+        p_pkg['meta'] = {}
+        p_pkg['meta']['desc'] = input('short description: ')
+        p_pkg['meta']['long_desc'] = input('long description: ')
+        p_pkg['meta']['homepage'] = input('project url: ')
+        p_pkg['bld'] = {}
+        p_pkg['bld']['steps'] = True if input('build steps? [y/n]: ').lower() == 'y' else False
+        if p_pkg['bld']['steps'] is False:
+            p_pkg['bld']['fp'] = input('path to build file: ')
+        else:
+            build_steps = []
+            collect = True
+            while collect:
+                viable = ['a', 'e', 'd', 'c']
+                out = ['you currently have {} build steps'.format(len(build_steps))]
+                out.insert(0, 'source: {}'.format(p_pkg['src']))
+                for step in build_steps:
+                    out.append('{0}: {1}'.format(build_steps.index(step), step))
+                out.append('(a)dd, (e)dit, (d)elete, (c)ontinue: ')
+                selection = input('\n'.join(out))
+                if selection in viable:
+                    if selection == 'a':
+                        build_steps.append(input('enter shell command: '))
+                    elif selection == 'e':
+                        try:
+                            bs_index = int(input('enter line number to edit: '))
+                        except ValueError as ve:
+                            input('invalid value: {} press enter to continue'.format(bs_index))
+                            continue
+                        self._out('current: \n{}'.format(build_steps[bs_index]))
+                        build_steps[bs_index] = input('new value: ')
+                    elif selection == 'd':
+                        try:
+                            bs_index = int(input('enter line number to delete: '))
+                        except ValueError as ve:
+                            input('invalid value: {} press enter to continue'.format(bs_index))
+                            continue
+                        build_steps.pop(bs_index)
+                    else:
+                        for step in build_steps:
+                            self._out('{0}: {1}'.format(build_steps.index(step), step))
+                        collect = True if input('confirm? [y/n]: ').lower() == 'n' else False
+                p_pkg['bld']['script'] = build_steps
+        return p_pkg
+
     def _package(self):
         '''
             package points to a directory with a json file
@@ -34,41 +87,24 @@ class Pmpm(object):
         '''
         pkg_dir = self._args.OPTS
         pkg_json_fp = '{}package.json'.format(pkg_dir)
+        pkg_json = {}
 
         if self._args.prompt:
-            self._out('packaging from scratch ...')
-            p_pkg = {}
-            p_pkg['depends'] = input('depends on?  pkg:ver|hash,pkg:ver|hash: ')
-            p_pkg['name'] = input('package name: ')
-            p_pkg['version'] = input('package version: ')
-            p_pkg['src'] = input('source path or url: ')
-            if 'http' in p_pkg['src'].lower():
-                p_pkg['src_sha256'] = ('source sha256: ')
-            p_pkg['meta'] = {}
-            p_pkg['meta']['desc'] = input('short description: ')
-            p_pkg['meta']['long_desc'] = input('long description: ')
-            p_pkg['meta']['homepage'] = input('project url: ')
-            p_pkg['bld'] = {}
-            p_pkg['bld']['steps'] = True if input('build steps? [y/n]: ').lower() == 'y' else False
-            if p_pkg['bld']['steps'] is False:
-                p_pkg['bld']['fp'] = input('path to build file: ')
-            else:
-                # TODO build steps
-                pass
-            return
-
-        if os.path.exists(pkg_dir):
-            if os.path.exists(pkg_json_fp):
-                try:
-                    pkg_json = json.load(open(pkg_json_fp))
-                except json.decoder.JSONDecodeError as jde:
-                    self._out('bad json: {0}\n{1}'.format(pkg_json_fp, jde))
-                self._out('got package.json for {}'.format(pkg_dir))
-                self._process_package(pkg_json)
-            else:
-                self._out('no package.json found for {}'.format(pkg_dir))
+            pkg_json = self._package_from_scratch()
         else:
-            self._out('package directory does not exist')
+            if os.path.exists(pkg_dir):
+                if os.path.exists(pkg_json_fp):
+                    try:
+                        pkg_json = json.load(open(pkg_json_fp))
+                    except json.decoder.JSONDecodeError as jde:
+                        self._out('bad json: {0}\n{1}'.format(pkg_json_fp, jde))
+                    self._out('got package.json for {}'.format(pkg_dir))
+                else:
+                    self._out('no package.json found for {}'.format(pkg_dir))
+            else:
+                self._out('package directory does not exist')
+
+        self._process_package(pkg_json)
 
     def _process_package(self, pkg_json):
         '''            
@@ -79,7 +115,38 @@ class Pmpm(object):
             2) fetchurl {} section is added w/ source url and sha256
 
         '''
-        self._out(pkg_json)
+        pkg_template = open('package.nix', 'r').readlines()
+        src = pkg_json['src']
+        pkg_template[4] = '  version = "{}";'.format(pkg_json['version'])
+        pkg_template[5] = '  name = "{}";'.format(pkg_json['name'])
+        # whether or not to use fetchurl changes structure of template
+        if not 'http' in src:
+            # local source
+            pkg_template[0] = '{ stdenv }:'
+            del(pkg_template[7:11])
+            pkg_template.insert(7, '  src = {};'.format(src))
+            if pkg_json['bld'].get('steps'):
+                for step in pkg_json['bld']['script']:
+                    pkg_template.insert(10, '    {}'.format(step))
+            else:
+                del(pkg_template[9:12])
+                pkg_template.insert(8, '  builder = {}'.format(pkg_json['bld']['fp']))
+        else:
+            # this is a fetchurl source
+            pkg_template[8] = '  url = "{}";'.format(pkg_json['src'])
+            pkg_template[9] = '  sha256 = "{}";'.format(pkg_json['src_sha256'])
+            if pkg_json['bld'].get('steps'):
+                for step in pkg_json['bld']['script']:
+                    pkg_template.insert(13, '    {}'.format(step))
+            else:
+                del(pkg_template[12:15])
+                pkg_template.insert(11, '  builder = {}'.format(pkg_json['bld']['fp']))
+
+        print(len(pkg_template))
+        for x in pkg_template:
+            print('{0}:{1}'.format(pkg_template.index(x), x))
+        
+
 
     def _execute(self):
         if self._args.version:
