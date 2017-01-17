@@ -11,5 +11,8 @@
     "homepage": "",
     "license": "gpl2",
     "platforms": ["linux"],
-    "builder_cmds": ["none"]
+    "bld": {
+        "steps": false,
+        "fp": "./builder.sh"
+    }
 }

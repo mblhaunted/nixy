@@ -142,9 +142,9 @@ class Pmpm(object):
                 del(pkg_template[12:15])
                 pkg_template.insert(11, '  builder = {}'.format(pkg_json['bld']['fp']))
 
-        print(len(pkg_template))
-        for x in pkg_template:
-            print('{0}:{1}'.format(pkg_template.index(x), x))
+#        print(len(pkg_template))
+#        for x in pkg_template:
+#            print('{0}:{1}'.format(pkg_template.index(x), x))
         
 
 
