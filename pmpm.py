@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse
+import json
 import os
 import subprocess
 
@@ -25,12 +26,16 @@ class Pmpm(object):
             package points to a directory with a json file
             that json file hooks it all up
         '''
-        package_dir = self._args.OPTS
-        if os.path.exists(package_dir):
-            if os.path.exists('{}/package.json'.format(package_dir)):
-                print('good')
+        pkg_dir = self._args.OPTS
+        pkg_json_fp = '{}package.json'.format(pkg_dir)
+        if os.path.exists(pkg_dir):
+            if os.path.exists(pkg_json_fp):
+                try:
+                    pkg_json = json.load(open(pkg_json_fp))
+                except json.decoder.JSONDecodeError as jde:
+                    print('bad json: {0}\n{1}'.format(pkg_json_fp, jde))
             else:
-                print('no package.json found for {}'.format(package_dir))
+                print('no package.json found for {}'.format(pkg_dir))
         else:
             print('package directory does not exist')
 
