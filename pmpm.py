@@ -158,8 +158,20 @@ class Pmpm(object):
         proc = subprocess.run(['mkdir', '-p', '{}'.format(dest_dir)])
         with open('{}/default.nix'.format(dest_dir), 'w') as pkg_fp:
             pkg_fp.write('\n'.join(pkg_template))
-        self._out('done.')
-        
+        self._out('done writing package content ...')
+        self._out('updating localrepo registry to include new package ...')
+        base_nix_fp = '{}/default.nix'.format(repo_dir)
+        base_nix = open(base_nix_fp, 'r').readlines()
+        self_index = 0
+        for line in base_nix:
+            if 'self = {' in line:
+                self_index = base_nix.index(line)
+            print('{0}:{1}'.format(base_nix.index(line), line))
+        pkg_insert = '    {0} = callPackage ./pkgs/{1} {{ }};'.format(pkg_json['name'], pkg_json['name'])
+        base_nix.insert(self_index+1, pkg_insert)
+        with open(base_nix_fp, 'w') as bn_fp:
+            bn_fp.write('\n'.join(base_nix))
+ 
     def _execute(self):
         if self._args.version:
             self._out('pmpm v{}'.format(self._VERSION))
