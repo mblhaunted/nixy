@@ -7,8 +7,18 @@ class Pmpm(object):
     def __init__(self):
         self._VERSION = '0.0.1'
         self._process_args()
+        self._verify_local_repo()
         self._execute()
 
+    def _verify_local_repo(self):
+        home = os.path.expanduser('~')
+        repo_dir = '{}/.pmpm/localrepo'.format(home)
+        if os.path.exists('{}/.pmpm'.format(home)) is False:
+            print('no pmpm directory exists, creating ...')
+            proc = subprocess.run(['mkdir', '-p', '{}/.pmpm/'.format(home)])
+            proc = subprocess.run(['mkdir', '-p', '{}/.pmpm/localrepo'.format(home)])
+            proc = subprocess.run(['cp', './base.nix', '{}/default.nix'.format(repo_dir)])
+        
     def _execute(self):
         if self._args.version:
             print('pmpm v{}'.format(self._VERSION))
