@@ -27,7 +27,15 @@ class Pmpm(object):
     def _package_from_scratch(self):
         self._out('packaging from scratch ...')
         p_pkg = {}
-        p_pkg['depends'] = input('depends on?  pkg:ver|hash,pkg:ver|hash: ')
+        p_pkg['depends'] = input('depends on? pkg,pkg: ')
+        depends = {}
+        dep_csplit = p_pkg['depends'].split(',')
+        for item in dep_csplit:
+            item_colsplit = item.split(':')
+            if len(item_colsplit) == 1:
+                item_colsplit.append('latest')
+            depends[item_colsplit[0]] = item_colsplit[1]
+        p_pkg['depends'] = depends
         p_pkg['name'] = input('package name: ')
         p_pkg['version'] = input('package version: ')
         p_pkg['src'] = input('source path or url: ')
@@ -107,47 +115,44 @@ class Pmpm(object):
         self._process_package(pkg_json)
 
     def _process_package(self, pkg_json):
-        '''            
-            TODO
-            if "src" in JSON has http or HTTPS, thats a fetchurl that needs
-            to customize the json.
-            1) "depends" needs fetchurl added
-            2) fetchurl {} section is added w/ source url and sha256
-
-        '''
         pkg_template = open('package.nix', 'r').readlines()
         src = pkg_json['src']
         pkg_template[4] = '  version = "{}";'.format(pkg_json['version'])
         pkg_template[5] = '  name = "{}";'.format(pkg_json['name'])
-        # whether or not to use fetchurl changes structure of template
         if not 'http' in src:
-            # local source
             pkg_template[0] = '{ stdenv }:'
             del(pkg_template[7:11])
             pkg_template.insert(7, '  src = {};'.format(src))
-            if pkg_json['bld'].get('steps'):
-                for step in pkg_json['bld']['script']:
-                    pkg_template.insert(10, '    {}'.format(step))
-            else:
-                del(pkg_template[9:12])
-                pkg_template.insert(8, '  builder = {}'.format(pkg_json['bld']['fp']))
         else:
-            # this is a fetchurl source
             pkg_template[8] = '  url = "{}";'.format(pkg_json['src'])
             pkg_template[9] = '  sha256 = "{}";'.format(pkg_json['src_sha256'])
-            if pkg_json['bld'].get('steps'):
-                for step in pkg_json['bld']['script']:
-                    pkg_template.insert(13, '    {}'.format(step))
-            else:
-                del(pkg_template[12:15])
-                pkg_template.insert(11, '  builder = {}'.format(pkg_json['bld']['fp']))
-
-#        print(len(pkg_template))
-#        for x in pkg_template:
-#            print('{0}:{1}'.format(pkg_template.index(x), x))
+        builder_index = 0
+        for line in pkg_template:
+            if 'builder =' in line:
+                builder_index = pkg_template.index(line) + 1
+        if pkg_json['bld'].get('script'):
+            for step in pkg_json['bld']['script']:
+                pkg_template.insert(builder_index, '    {}'.format(step))
+                builder_index += 1
+        else:
+            del(pkg_template[builder_index-1:builder_index+2])
+            pkg_template.insert(builder_index-1, '  builder = {}'.format(pkg_json['bld']['fp']))
+        line = pkg_template[0]
+        end = line.index(':')
+        new_line = line[:end-2]
+        for dep in pkg_json['depends']:
+           new_line += ', {}'.format(dep)
+        new_line += ' }: '            
+        pkg_template[0] = new_line
+        meta_index = 0
+        for line in pkg_template:
+            if 'meta = {' in line:
+                meta_index = pkg_template.index(line)
+        pkg_template[meta_index+1] = '    description = "{}";'.format(pkg_json['meta']['desc'])
+        pkg_template[meta_index+2] = '    longDescription = "{}";'.format(pkg_json['meta']['long_desc'])
+        pkg_template[meta_index+3] = '    homepage = "{}";'.format(pkg_json['meta']['homepage'])
+        self._write_package(pkg_template, pkg_json)
         
-
-
     def _execute(self):
         if self._args.version:
             self._out('pmpm v{}'.format(self._VERSION))
