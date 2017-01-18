@@ -13,9 +13,9 @@ By taking advantage of Nix's deterministic package building, we can set dependen
 
 # Requirements
 
-Linux or OSX
-Nix Package Manager
-Python 3
+Linux or OSX<br/>
+Nix Package Manager<br/>
+Python 3<br/>
 
 # Usage
 
