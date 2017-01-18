@@ -171,7 +171,6 @@ class Pmpm(object):
                 meta_index = pkg_template.index(line)
             elif '  ";' in line:
                 build_input_index = pkg_template.index(line)
-        #pkg_template.insert(build_input_index, '\n')
         pkg_template.insert(build_input_index+1, build_inputs)
         pkg_template[meta_index+2] = '    description = "{}";'.format(pkg_json['meta']['desc'])
         pkg_template[meta_index+3] = '    longDescription = "{}";'.format(pkg_json['meta']['long_desc'])
