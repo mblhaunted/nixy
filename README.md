@@ -19,7 +19,9 @@ Python 3<br/>
 
 ### sudo
 
-The application currently relies on sudo to implement symlinking to the root path. It's recommended to configure your /etc/sudoders file to allow NOPASSWD for the following commands.
+The application currently relies on sudo to implement symlinking to the root path.
+
+It's recommended to configure your `/etc/sudoders` file to allow `NOPASSWD` for the following commands.
 
 ```
 mkdir
@@ -30,7 +32,7 @@ rm  # for symlinks only
 
 ### Virtualenv
 
-While not required, virtualenv and virtualenvwrapper are recommended to easily manage Python enviornments.
+While not required, `virtualenv` and `virtualenvwrapper` are recommended to easily manage Python enviornments.
 
 nixy requires nothing outside of python 3. It's recommended to use the following command to set up your nixy environemnt.
 
@@ -50,7 +52,7 @@ export NIX_PATH=localpkgs=/Users/matthew.lindsey/.nixy/localrepo/default.nix:$NI
 
 This needs to be configured in order to function properly.
 
-nixy will also create a local nix channel, "localpkgs", when it's called for the first time.
+nixy will also create a local nix channel, `localpkgs`, when it's called for the first time.
 
 ```
 ls -l ~/.nixy/
@@ -63,7 +65,7 @@ drwxr-xr-x  4 m1001  wheel  136 Jan 18 13:04 localrepo
 
 ### Installing a package
 
-Installs search both localpkgs and nixpkgs.
+Installs search both `localpkgs` and `nixpkgs`.
 
 Install a package
 
@@ -109,7 +111,7 @@ or
 
 In the examples/package.json, you can find a demonstration of how to specify a package.
 
-If you'd prefer to build without the interactive prompts, simply call nixy package and specify the location of your package.json.
+If you'd prefer to build without the interactive prompts, simply call nixy package and specify the location of your `package.json`.
 
 ```
 ./nixy.py package ./examples/
@@ -172,7 +174,7 @@ Here you specify your source code. This is ususally in an archive. You can specf
 
 > create symlinks? [y/n]: y
 
-If enabled, symlinks will be created for you based on the actions you take in the build's "$out/" directory. 
+If enabled, symlinks will be created for you based on the actions you take in the build's `$out` directory. 
 
 For example ..
 
@@ -180,7 +182,7 @@ For example ..
 echo hi > $out/foo.txt 
 ```
 
-This will end up symlinked to /foo.txt on your drive.
+This will end up symlinked to `/foo.txt` on your drive.
 
 ``` 
 you currently have 0 build steps
@@ -194,16 +196,14 @@ you currently have 1 build steps
 confirm? [y/n]: y
 ```
 
-The builder is where the magic happens. Note, you have a variable here that is "$out" which is your workspace. 
-
 At the end of the build, your files are either written to your local nix path or also created as symlinks relative to your root path.
 
 ## The Builder
 
 There are three ways to specify a package's build steps, and the builder has some caveats that you need to be aware of.
 
-1) Your source file is represented as "$src"<br/>
-2) and your output directory is "$out", and attempting to write to anything else will cause a build failure.<br/>
+1) Your source file is represented as `$src`<br/>
+2) Your output directory is `$out`, and attempting to write to anything else will cause a build failure.<br/>
 
 You need to take these factors into accoutn when composing your build steps.
 
@@ -263,7 +263,7 @@ If you wish to call a script for the build to include in your source packages, s
 
 By default, nix packages are built into a deterministic workspace. This writes to a hidden nix directory on the user's path. 
 
-Suppose you'd like to "install" your application to "/usr/bin/local". This is where symlinks come in handy.
+Suppose you'd like to "install" your application to `/usr/bin/local`. This is where symlinks come in handy.
 
 A quick example follows.
 
