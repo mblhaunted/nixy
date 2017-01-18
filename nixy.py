@@ -289,7 +289,8 @@ class Nixy(object):
         path = self._get_working_dir(target)
         version = path[path.rindex('-')+1:]
         pkg_json = {'name': target, 'version': version}
-        self._write_symlinks(path, pkg_json)
+        if self._args.symlinks:
+            self._write_symlinks(path, pkg_json)
 
     def _uninstall(self):
         target = self._args.OPTS
