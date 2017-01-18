@@ -100,6 +100,10 @@ class Pmpm(object):
 
     def _package(self):
         pkg_dir = self._args.OPTS
+        if pkg_dir is None:
+            self._out('no package directory specified ...')
+            self._out('going interactive ...')
+            self._args.prompt = True
         pkg_json_fp = '{}package.json'.format(pkg_dir)
         pkg_json = {}
         if self._args.prompt:
@@ -184,7 +188,7 @@ class Pmpm(object):
         if not abort_write:
             with open(base_nix_fp, 'w') as bn_fp:
                 bn_fp.write('\n'.join(base_nix))
-        proc = subprocess.run(['nix-env', '-f', "<localpkgs>", '-iA', pkg_json['name']])
+        #proc = subprocess.run(['nix-env', '-f', "<localpkgs>", '-iA', pkg_json['name']])
         if pkg_json.get('symlinks'):
             self._write_symlinks(self._get_working_dir(pkg_json['name']), pkg_json)
 
