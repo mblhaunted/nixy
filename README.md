@@ -38,7 +38,7 @@ nixy requires nothing outside of python 3. It's recommended to use the following
 mkvirtualenv --python=python3 nixy
 ```
 
-## Running for the first time
+### First time run
 
 nixy will complain if you don't have your NIX_PATH properly set to include your new local channel.
 
@@ -59,7 +59,9 @@ total 0
 drwxr-xr-x  4 m1001  wheel  136 Jan 18 13:04 localrepo
 ```
 
-## Installing a package
+## Usage
+
+### Installing a package
 
 Installs search both localpkgs and nixpkgs.
 
@@ -75,7 +77,7 @@ Install a package and configure symlinks
 ./nixy.py install package -s
 ```
 
-## Uninstall a package
+### Uninstall a package
 
 ```
 ./nixy.py uninstall package
@@ -83,10 +85,22 @@ Install a package and configure symlinks
 
 Note; uninstall cleans up symlinks.
 
-## Search a package
+### Search a package
 
 ```
 ./nixy.py search regex
+```
+
+### Create a package
+
+```
+./nixy.py package [directory]
+```
+
+or
+
+``` 
+./nixy.py package -p   # interactive mode
 ```
 
 ## Packaging
@@ -193,7 +207,6 @@ There are three ways to specify a package's build steps, and the builder has som
 
 You need to take these factors into accoutn when composing your build steps.
 
-
 ### Interactive
 
 Using the interactive prompt, you can specify the build steps you want.
@@ -209,7 +222,6 @@ you currently have 1 build steps
 [nixy]: 0: echo $src  # this would echo back the source file
 confirm? [y/n]: y
 ```
-
 ### JSON
 
 In examples/package.json, we see how to add build steps.
@@ -247,7 +259,6 @@ If you wish to call a script for the build to include in your source packages, s
 ```
 ./builder.sh
 ```
-
 ## Symlinks
 
 By default, nix packages are built into a deterministic workspace. This writes to a hidden nix directory on the user's path. 
@@ -262,4 +273,3 @@ echo foo > $out/usr/bin/local/foo.txt
 ```
 
 With symlinks enabled, this build will place foo.txt in /usr/bin/local and it will be owned by the user who launched the process.
-
