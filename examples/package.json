@@ -1,14 +1,15 @@
 {
     "depends": {
-        "stdenv": "latest"
     },
     "version": "0.0.0",
     "name": "default",
     "src": "default",
     "src_sha256": "default",
-    "short_desc": "default",
-    "long_desc": "default",
-    "homepage": "default",
+    "meta": {
+        "desc": "default",
+        "long_desc": "default",
+        "homepage": "default"
+    },
     "license": "gpl2",
     "platforms": ["linux"],
     "bld": {

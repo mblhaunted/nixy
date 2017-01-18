@@ -109,6 +109,7 @@ class Pmpm(object):
                 if os.path.exists(pkg_json_fp):
                     try:
                         pkg_json = json.load(open(pkg_json_fp))
+                        print(pkg_json)
                     except json.decoder.JSONDecodeError as jde:
                         self._out('bad json: {0}\n{1}'.format(pkg_json_fp, jde))
                     self._out('got package.json for {}'.format(pkg_dir))
