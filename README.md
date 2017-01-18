@@ -89,103 +89,9 @@ Note; uninstall cleans up symlinks.
 ./nixy.py search regex
 ```
 
-## Packaging## JSON specification
-
-In the examples/package.json, you can find a demonstration of how to specify a package.
-
-If you'd prefer to build without the interactive prompts, simply call nixy package and specify the location of your package.json.
-
-```
-./nixy.py package ./examples/
-```
-
-### Interactive Mode
-
-Interactive mode allows the user to fill in the details of a package by hand.
-
-```
-(nixy) [m1001@wormhole]:[~/Documents/dev/git/pmpm]: ./pmpm.py package -p
-[nixy]: no pmpm directory exists, creating ...
-[nixy]: packaging from scratch ...
-depends on? pkg,pkg:
-package name: hi
-package version: 0.0.1
-source path or url: /package.tar.gz
-short description: hi
-long description: hi!
-project url:
-create symlinks? [y/n]: y
-build steps? [y/n]: y
-source: /package.tar.gz
-you currently have 0 build steps
-(a)dd, (e)dit, (d)elete, (c)ontinue: a
-enter shell command: echo hello world
-source: /package.tar.gz
-you currently have 1 build steps
-0: echo hello world
-(a)dd, (e)dit, (d)elete, (c)ontinue: c
-[nixy]: 0: echo hello world
-confirm? [y/n]: y
-[nixy]: creating new package hi in localrepo ...
-[nixy]: done writing package content ...
-[nixy]: updating localrepo registry to include new package ...
-replacing old ‘hi-0.0.1’
-installing ‘hi-0.0.1’
-these derivations will be built:
-  /nix/store/dq56lgg16yjjiyq8ixvqs6zp8w2jnyrv-hi-0.0.1.drv
-building path(s) ‘/nix/store/qn6rsll7hm6j4cgw7nwqr1ijqjp4130j-hi-0.0.1’
-hello world
-building path(s) ‘/nix/store/40jbig1x7svx8a07hbxs9h4kqyi97xij-user-environment’
-created 9 symlinks in user environment
-[nixy]: fetched deriv dir /nix/store/dq56lgg16yjjiyq8ixvqs6zp8w2jnyrv-hi-0.0.1.drv for hi
-[nixy]: working directory for hi is: /nix/store/qn6rsll7hm6j4cgw7nwqr1ijqjp4130j-hi-0.0.1
-
-```
-
-That's it! You have a ready-to-go Nix package installed in your local repository.
-
-Let's dive a little deeper.
-
->  depends on? pkg,pkg:
-
-This line allows the user to specify other Nix packages for dependencies. Since the package is built in a deterministic env and hashed, you never have to worry about it changing.
-
-> source path or url: /package.tar.gz
-
-Here you specify your source code. This is ususally in an archive. You can specfy a local file, or a url.
-
-> create symlinks? [y/n]: y
-
-If enabled, symlinks will be created for you based on the actions you take in the build's "$out/" directory. 
-
-For example ..
-
-```
-echo hi > $out/foo.txt 
-```
-
-This will end up symlinked to /foo.txt on your drive.
-
-``` 
-you currently have 0 build steps
-(a)dd, (e)dit, (d)elete, (c)ontinue: a
-enter shell command: echo hello world
-source: /package.tar.gz
-you currently have 1 build steps
-0: echo hello world
-(a)dd, (e)dit, (d)elete, (c)ontinue: c
-[nixy]: 0: echo hello world
-confirm? [y/n]: y
-```
-
-The builder is where the magic happens. Note, you have a variable here that is "$out" which is your workspace. 
-
-At the end of the build, your files are either written to your local nix path or also created as symlinks relative to your root path.
-
-
 ## Packaging
 
-## JSON specification
+### JSON specification
 
 In the examples/package.json, you can find a demonstration of how to specify a package.
 
@@ -277,15 +183,18 @@ confirm? [y/n]: y
 The builder is where the magic happens. Note, you have a variable here that is "$out" which is your workspace. 
 
 At the end of the build, your files are either written to your local nix path or also created as symlinks relative to your root path.
-
 
 ## The Builder
 
-There are three ways to specify a package's build steps.
+There are three ways to specify a package's build steps, and the builder has some caveats that you need to be aware of.
 
-Note that when using the builder, your source file is represented as "$src", and your output directory is "$out". Attempting to write to anything else will cause a build failure!
+1) Your source file is represented as "$src"
+2) and your output directory is "$out", and attempting to write to anything else will cause a build failure.
 
-### Interactivs
+You need to take these factors into accoutn when composing your build steps.
+
+
+### Interactive
 
 Using the interactive prompt, you can specify the build steps you want.
 
@@ -295,9 +204,9 @@ you currently have 0 build steps
 enter shell command: echo hello world
 source: /package.tar.gz
 you currently have 1 build steps
-0: echo hello world
+0: echo $src  # this would echo back the source file
 (a)dd, (e)dit, (d)elete, (c)ontinue: c
-[nixy]: 0: echo hello world
+[nixy]: 0: echo $src  # this would echo back the source file
 confirm? [y/n]: y
 ```
 
