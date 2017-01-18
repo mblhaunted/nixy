@@ -234,7 +234,15 @@ In examples/package.json, we see how to add build steps.
 
 This will run each build step listed in the "script" array.
 
-### Symlinks
+### Shell script
+
+If you wish to call a script for the build to include in your source packages, simply specify the name of the script with the path. 
+
+```
+./builder.sh
+```
+
+## Symlinks
 
 By default, nix packages are built into a deterministic workspace. This writes to a hidden nix directory on the user's path. 
 
