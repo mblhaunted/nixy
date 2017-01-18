@@ -1,13 +1,18 @@
 # pmpm
 Poor Man's Package Manager
+v0.0.1alpha
 
 # Summary
+
+PMPM let's you package anything, quickly.
 
 PMPM is a set of tools around the nix package manager designed to make packaging simple and reliable. 
 
 By taking advantage of Nix's deterministic package building, we can set dependencies with confidence.
 
+
 # Requirements
+
 Linux or OSX
 Nix Package Manager
 Python 3
@@ -115,3 +120,9 @@ confirm? [y/n]: y
 The builder is where the magic happens. Note, you have a variable here that is "$out" which is your workspace. 
 
 At the end of the build, your files are either written to your local nix path or also created as symlinks relative to your root path.
+
+More on the builder later.
+
+## JSON specification
+
+In the examples/package.json, you can find a demonstration of how to specify a package. Currently, this is unsupprorted and interactive mode is recommended.
