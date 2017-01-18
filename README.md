@@ -6,16 +6,16 @@ v0.0.1alpha
 
 PMPM let's you package anything, quickly.
 
-PMPM is a set of tools around the nix package manager designed to make packaging simple and reliable. 
+PMPM is a set of tools around the Nix package manager designed to make packaging simple and reliable. 
 
 By taking advantage of Nix's deterministic package building, we can set dependencies with confidence.
 
 
 # Requirements
 
-Linux or OSX
-Nix Package Manager
-Python 3
+Linux or OSX<br/>
+Nix Package Manager<br/>
+Python 3<br/>
 
 # Usage
 
@@ -39,7 +39,7 @@ Note; uninstall cleans up symlinks.
 
 ### Interactive Mode
 
-Interactive mode allows the user to fill in the details of their package by hand. This is useful for experimenting with builds before hand.
+Interactive mode allows the user to fill in the details of a package by hand.
 
 ```
 (pmpm) [m1001@wormhole]:[~/Documents/dev/git/pmpm]: ./pmpm.py package -p
