@@ -39,7 +39,7 @@ Note; uninstall cleans up symlinks.
 
 ### Interactive Mode
 
-Interactive mode allows the user to fill in the details of their package by hand. This is useful for experimenting with builds before hand.
+Interactive mode allows the user to fill in the details of a package by hand.
 
 ```
 (pmpm) [m1001@wormhole]:[~/Documents/dev/git/pmpm]: ./pmpm.py package -p
