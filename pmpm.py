@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse
+import getpass
 import json
 import os
 import subprocess
@@ -13,6 +14,16 @@ class Pmpm(object):
 
     def _out(self, msg):
         print('[pmpm]: {}'.format(msg))
+
+    def _get_working_dir(self, name):
+        proc = subprocess.run(['nix-instantiate', "<localpkgs>", "-A", '{}'.format(name)],
+                                stdout=subprocess.PIPE)
+        deriv_dir = proc.stdout.decode('utf-8').strip()
+        self._out('fetched deriv dir {0} for {1}'.format(deriv_dir, name))
+        proc = subprocess.run(['nix-store', '-q', '--outputs', deriv_dir], stdout=subprocess.PIPE)
+        working_dir = proc.stdout.decode('utf-8').strip()
+        self._out('working directory for {0} is: {1}'.format(name, working_dir))
+        return(working_dir)
 
     def _verify_local_repo(self):
         home = os.path.expanduser('~')
@@ -46,6 +57,7 @@ class Pmpm(object):
         p_pkg['meta']['desc'] = input('short description: ')
         p_pkg['meta']['long_desc'] = input('long description: ')
         p_pkg['meta']['homepage'] = input('project url: ')
+        p_pkg['symlinks'] = True if input('create symlinks? [y/n]: ').lower() == 'y' else False
         p_pkg['bld'] = {}
         p_pkg['bld']['steps'] = True if input('build steps? [y/n]: ').lower() == 'y' else False
         if p_pkg['bld']['steps'] is False:
@@ -129,7 +141,7 @@ class Pmpm(object):
                 builder_index += 1
         else:
             del(pkg_template[builder_index-3:builder_index+2])
-            pkg_template.insert(builder_index-3, '  builder = {}'.format(pkg_json['bld']['fp']))
+            pkg_template.insert(builder_index-3, '  builder = {};'.format(pkg_json['bld']['fp']))
         line = pkg_template[0]
         end = line.index(':')
         new_line = line[:end-2]
@@ -172,6 +184,60 @@ class Pmpm(object):
             with open(base_nix_fp, 'w') as bn_fp:
                 bn_fp.write('\n'.join(base_nix))
         proc = subprocess.run(['nix-env', '-f', "<localpkgs>", '-iA', pkg_json['name']])
+        if pkg_json.get('symlinks'):
+            self._write_symlinks(self._get_working_dir(pkg_json['name']), pkg_json)
+
+    def _write_symlinks(self, path, pkg_json):
+        root = True
+        name_ver = '{0}-{1}'.format(pkg_json['name'], pkg_json['version'])
+        for current_dir, subdirs, files in os.walk(path):
+            # symlink is from current_dir -> root
+            for fp in files:
+                src_path = os.path.join(current_dir, fp)
+                if root:
+                    base_path = '/'
+                    dest_path = '{0}{1}'.format(base_path, fp)
+                else:
+                    base_path = current_dir[current_dir.index(name_ver)+len(name_ver):]
+                    dest_path = '{0}/{1}'.format(base_path, fp)
+                if not os.path.exists(base_path):
+                    proc = subprocess.run(['sudo', 'mkdir', '-p', base_path])
+                    proc = subprocess.run([
+                        'sudo',
+                        'chown',
+                        '-R',
+                        '{}'.format(getpass.getuser()),
+                        base_path])
+                proc = subprocess.run([
+                    'sudo',
+                    'ln',
+                    '-sf',
+                    '{}'.format(src_path),
+                    '{}'.format(dest_path)])
+                proc = subprocess.run([
+                    'sudo',
+                    'chown',
+                    '-R',
+                    '{}'.format(getpass.getuser()),
+                    dest_path])
+            root = False
+
+    def _delete_symlinks(self, path, name):
+        root = True
+        version = path[path.index(name):]
+        name_ver = '{}'.format(version)
+        for current_dir, subdirs, files in os.walk(path):
+            # symlink is from current_dir -> root
+            base_path = ''
+            for fp in files:
+                if root:
+                    base_path = '/'
+                    dest_path = '{0}{1}'.format(base_path, fp)
+                else:
+                    base_path = current_dir[current_dir.index(name_ver)+len(name_ver):]
+                    dest_path = '{0}/{1}'.format(base_path, fp)
+                proc = subprocess.run(['sudo', 'rm', '{}'.format(dest_path)])
+            root = False
  
     def _execute(self):
         if self._args.version:
@@ -194,14 +260,29 @@ class Pmpm(object):
         if target is None:
             self._out('no install target specified')
             return
-        proc = subprocess.run(['nix-env', '-f', "<localpkgs>", '-f', "<nixpkgs>", '--install', target])
+        proc = subprocess.run([
+            'nix-env',
+            '-f',
+            "<localpkgs>",
+            '--install', 
+            target])
+        path = self._get_working_dir(target)
+        version = path[path.rindex('-')+1:]
+        pkg_json = {'name': target, 'version': version}
+        self._write_symlinks(path, pkg_json)
 
     def _uninstall(self):
         target = self._args.OPTS
         if target is None:
             self._out('no uninstall target specified')
             return
-        proc = subprocess.run(['nix-env', '-f', "<localpkgs>", '-f', "<nixpkgs>", '--uninstall', target])
+        self._delete_symlinks(self._get_working_dir(target), target)
+        proc = subprocess.run([
+            'nix-env',
+            '-f',
+            "<localpkgs>",
+            '--uninstall',
+            target])
 
     def _search(self):
         search_str = self._args.OPTS
@@ -224,6 +305,7 @@ class Pmpm(object):
         self._arg_parser.add_argument('OPTS', nargs='?')
         self._arg_parser.add_argument('-d', '--dry', help='run dry', action='store_true')
         self._arg_parser.add_argument('-p', '--prompt', help='prompt mode', action='store_true')
+        self._arg_parser.add_argument('-s', '--symlinks', help='create links', action='store_true')
         self._arg_parser.add_argument('-l', '--local', help='run local', action='store_true')
         self._arg_parser.add_argument(
                 '--version',

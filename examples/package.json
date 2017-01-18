@@ -14,5 +14,6 @@
     "bld": {
         "steps": false,
         "fp": "./builder.sh"
-    }
+    },
+    "symlinks": true
 }
