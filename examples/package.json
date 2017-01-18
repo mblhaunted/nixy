@@ -1,19 +1,20 @@
 {
     "depends": {
     },
-    "version": "0.0.0",
-    "name": "default",
-    "src": "default",
+    "version": "0.0.1",
+    "name": "pmpm",
+    "src": "/package.tar.gz",
     "src_sha256": "default",
     "meta": {
-        "desc": "default",
-        "long_desc": "default",
+        "desc": "pmpm",
+        "long_desc": "pmpm!",
         "homepage": "default"
     },
     "license": "gpl2",
     "platforms": ["linux"],
     "bld": {
-        "steps": false,
+        "steps": true,
+        "script": ["ls -l", "ls -l $src"],
         "fp": "./builder.sh"
     },
     "symlinks": true
