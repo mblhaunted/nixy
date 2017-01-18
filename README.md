@@ -202,8 +202,8 @@ At the end of the build, your files are either written to your local nix path or
 
 There are three ways to specify a package's build steps, and the builder has some caveats that you need to be aware of.
 
-1) Your source file is represented as "$src"
-2) and your output directory is "$out", and attempting to write to anything else will cause a build failure.
+1) Your source file is represented as "$src"<br/>
+2) and your output directory is "$out", and attempting to write to anything else will cause a build failure.<br/>
 
 You need to take these factors into accoutn when composing your build steps.
 
