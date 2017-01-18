@@ -18,6 +18,9 @@ class Pmpm(object):
     def _get_working_dir(self, name):
         proc = subprocess.run(['nix-instantiate', "<localpkgs>", "-A", '{}'.format(name)],
                                 stdout=subprocess.PIPE)
+        if proc.returncode != 0:
+            self._out('error getting working dir ...')
+            exit(1)
         deriv_dir = proc.stdout.decode('utf-8').strip()
         self._out('fetched deriv dir {0} for {1}'.format(deriv_dir, name))
         proc = subprocess.run(['nix-store', '-q', '--outputs', deriv_dir], stdout=subprocess.PIPE)
@@ -188,7 +191,6 @@ class Pmpm(object):
         if not abort_write:
             with open(base_nix_fp, 'w') as bn_fp:
                 bn_fp.write('\n'.join(base_nix))
-        #proc = subprocess.run(['nix-env', '-f', "<localpkgs>", '-iA', pkg_json['name']])
         if pkg_json.get('symlinks'):
             self._write_symlinks(self._get_working_dir(pkg_json['name']), pkg_json)
 
@@ -271,6 +273,8 @@ class Pmpm(object):
             "<localpkgs>",
             '--install', 
             target])
+        if proc.returncode != 0:
+            return
         path = self._get_working_dir(target)
         version = path[path.rindex('-')+1:]
         pkg_json = {'name': target, 'version': version}
