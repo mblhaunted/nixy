@@ -1,13 +1,11 @@
-# pmpm
-Poor Man's Package Manager
-v0.0.1alpha
+# nixy
+nixy v0.0.1alpha
 
 # Summary
 
-PMPM is a set of tools around the Nix package manager designed to make packaging simple and reliable. 
+nixy makes it easy to create and manage deterministic nix packages.
 
-By taking advantage of Nix's deterministic package building, we can set dependencies with confidence.
-
+<color: red>Please note that this is alpha software, and will be changing over time.</color>
 
 # Requirements
 
@@ -15,24 +13,90 @@ Linux or OSX<br/>
 Nix Package Manager<br/>
 Python 3<br/>
 
-# Usage
+# Usage and Configuration
+
+## Configuration
+
+### sudo
+
+The application currently relies on sudo to implement symlinking to the root path. It's recommended to configure your /etc/sudoders file to allow NOPASSWD for the following commands.
+
+```
+mkdir
+ln
+chown
+rm  # for symlinks only
+```
+
+### Virtualenv
+
+While not required, virtualenv and virtualenvwrapper are recommended to easily manage Python enviornments.
+
+nixy requires nothing outside of python 3. It's recommended to use the following command to set up your nixy environemnt.
+
+```
+mkvirtualenv --python=python3 nixy
+```
+
+## Running for the first time
+
+nixy will complain if you don't have your NIX_PATH properly set to include your new local channel.
+
+```
+(nixy) [m1001@wormhole]:[~/Documents/dev/git/nixy]: ./nixy.py
+[nixy]: WARNING: set proper NIX_PATH in profile!
+export NIX_PATH=localpkgs=/Users/matthew.lindsey/.nixy/localrepo/default.nix:$NIX_PATH
+```
+
+This needs to be configured in order to function properly.
+
+nixy will also create a local nix channel, "localpkgs", when it's called for the first time.
+
+```
+ls -l ~/.nixy/
+[m1001@wormhole]:[~]: ls -l ~/.nixy/
+total 0
+drwxr-xr-x  4 m1001  wheel  136 Jan 18 13:04 localrepo
+```
 
 ## Installing a package
 
+Installs search both localpkgs and nixpkgs.
+
+Install a package
+
 ```
-./pmpm.py install package
+./nixy.py install package
+```
+
+Install a package and configure symlinks
+
+```
+./nixy.py install package -s
 ```
 
 ## Uninstall a package
+
 ```
-./pmpm.py uninstall package
+./nixy.py uninstall package
 ```
 
 Note; uninstall cleans up symlinks.
 
 ## Search a package
+
 ```
-./pmpm.py search regex
+./nixy.py search regex
+```
+
+## JSON specification
+
+In the examples/package.json, you can find a demonstration of how to specify a package.
+
+If you'd prefer to build without the interactive prompts, simply call nixy package and specify the location of your package.json.
+
+```
+./nixy.py package ./examples/
 ```
 
 ### Interactive Mode
@@ -40,9 +104,9 @@ Note; uninstall cleans up symlinks.
 Interactive mode allows the user to fill in the details of a package by hand.
 
 ```
-(pmpm) [m1001@wormhole]:[~/Documents/dev/git/pmpm]: ./pmpm.py package -p
-[pmpm]: no pmpm directory exists, creating ...
-[pmpm]: packaging from scratch ...
+(nixy) [m1001@wormhole]:[~/Documents/dev/git/pmpm]: ./pmpm.py package -p
+[nixy]: no pmpm directory exists, creating ...
+[nixy]: packaging from scratch ...
 depends on? pkg,pkg:
 package name: hi
 package version: 0.0.1
@@ -60,11 +124,11 @@ source: /package.tar.gz
 you currently have 1 build steps
 0: echo hello world
 (a)dd, (e)dit, (d)elete, (c)ontinue: c
-[pmpm]: 0: echo hello world
+[nixy]: 0: echo hello world
 confirm? [y/n]: y
-[pmpm]: creating new package hi in localrepo ...
-[pmpm]: done writing package content ...
-[pmpm]: updating localrepo registry to include new package ...
+[nixy]: creating new package hi in localrepo ...
+[nixy]: done writing package content ...
+[nixy]: updating localrepo registry to include new package ...
 replacing old ‘hi-0.0.1’
 installing ‘hi-0.0.1’
 these derivations will be built:
@@ -73,9 +137,8 @@ building path(s) ‘/nix/store/qn6rsll7hm6j4cgw7nwqr1ijqjp4130j-hi-0.0.1’
 hello world
 building path(s) ‘/nix/store/40jbig1x7svx8a07hbxs9h4kqyi97xij-user-environment’
 created 9 symlinks in user environment
-warning: you did not specify ‘--add-root’; the result might be removed by the garbage collector
-[pmpm]: fetched deriv dir /nix/store/dq56lgg16yjjiyq8ixvqs6zp8w2jnyrv-hi-0.0.1.drv for hi
-[pmpm]: working directory for hi is: /nix/store/qn6rsll7hm6j4cgw7nwqr1ijqjp4130j-hi-0.0.1
+[nixy]: fetched deriv dir /nix/store/dq56lgg16yjjiyq8ixvqs6zp8w2jnyrv-hi-0.0.1.drv for hi
+[nixy]: working directory for hi is: /nix/store/qn6rsll7hm6j4cgw7nwqr1ijqjp4130j-hi-0.0.1
 
 ```
 
@@ -111,7 +174,7 @@ source: /package.tar.gz
 you currently have 1 build steps
 0: echo hello world
 (a)dd, (e)dit, (d)elete, (c)ontinue: c
-[pmpm]: 0: echo hello world
+[nixy]: 0: echo hello world
 confirm? [y/n]: y
 ```
 
@@ -119,8 +182,70 @@ The builder is where the magic happens. Note, you have a variable here that is "
 
 At the end of the build, your files are either written to your local nix path or also created as symlinks relative to your root path.
 
-More on the builder later.
+## The Builder
 
-## JSON specification
+There are three ways to specify a package's build steps.
 
-In the examples/package.json, you can find a demonstration of how to specify a package. Currently, this is unsupprorted and interactive mode is recommended.
+Note that when using the builder, your source file is represented as "$src", and your output directory is "$out". Attempting to write to anything else will cause a build failure!
+
+### Interactive
+
+Using the interactive prompt, you can specify the build steps you want.
+
+```
+you currently have 0 build steps
+(a)dd, (e)dit, (d)elete, (c)ontinue: a
+enter shell command: echo hello world
+source: /package.tar.gz
+you currently have 1 build steps
+0: echo hello world
+(a)dd, (e)dit, (d)elete, (c)ontinue: c
+[nixy]: 0: echo hello world
+confirm? [y/n]: y
+```
+
+### JSON
+
+In examples/package.json, we see how to add build steps.
+
+```
+{
+    "depends": {
+    },
+    "version": "0.0.1",
+    "name": "pmpm",
+    "src": "/package.tar.gz",
+    "src_sha256": "default",
+    "meta": {
+        "desc": "pmpm",
+        "long_desc": "pmpm!",
+        "homepage": "default"
+    },
+    "license": "gpl2",
+    "platforms": ["linux"],
+    "bld": {
+        "steps": true,
+        "script": ["ls -l", "ls -l $src"],
+        "fp": "./builder.sh"
+    },
+    "symlinks": true
+}
+```
+
+This will run each build step listed in the "script" array.
+
+### Symlinks
+
+By default, nix packages are built into a deterministic workspace. This writes to a hidden nix directory on the user's path. 
+
+Suppose you'd like to "install" your application to "/usr/bin/local". This is where symlinks come in handy.
+
+A quick example follows.
+
+```
+mkdir -p $out/usr/bin/local
+echo foo > $out/usr/bin/local/foo.txt
+```
+
+With symlinks enabled, this build will place foo.txt in /usr/bin/local and it will be owned by the user who launched the process.
+
