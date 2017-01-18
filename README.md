@@ -122,8 +122,8 @@ If you'd prefer to build without the interactive prompts, simply call nixy packa
 Interactive mode allows the user to fill in the details of a package by hand.
 
 ```
-(nixy) [m1001@wormhole]:[~/Documents/dev/git/pmpm]: ./pmpm.py package -p
-[nixy]: no pmpm directory exists, creating ...
+(nixy) [m1001@wormhole]:[~/Documents/dev/git/nixy]: ./nixy.py package -p
+[nixy]: no nixy directory exists, creating ...
 [nixy]: packaging from scratch ...
 depends on? pkg,pkg:
 package name: hi
@@ -231,12 +231,12 @@ In examples/package.json, we see how to add build steps.
     "depends": {
     },
     "version": "0.0.1",
-    "name": "pmpm",
+    "name": "nixy",
     "src": "/package.tar.gz",
     "src_sha256": "default",
     "meta": {
-        "desc": "pmpm",
-        "long_desc": "pmpm!",
+        "desc": "nixy",
+        "long_desc": "nixy!",
         "homepage": "default"
     },
     "license": "gpl2",
