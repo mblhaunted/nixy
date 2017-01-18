@@ -130,6 +130,8 @@ class Pmpm(object):
         self._process_package(pkg_json)
 
     def _process_package(self, pkg_json):
+        builder_index = 0
+        build_input_index = 0
         pkg_template = [x.strip('\n') for x in open('package.nix', 'r').readlines()]
         src = pkg_json['src']
         pkg_template[4] = '  version = "{}";'.format(pkg_json['version'])
@@ -156,17 +158,24 @@ class Pmpm(object):
         line = pkg_template[0]
         end = line.index(':')
         new_line = line[:end-2]
+        build_inputs = 'buildInputs = [ '
         for dep in pkg_json['depends']:
-           new_line += ', {}'.format(dep)
+            new_line += ', {}'.format(dep)
+            build_inputs += '{} '.format(dep)
+        build_inputs += '];'
         new_line += ' }: '            
         pkg_template[0] = new_line
         meta_index = 0
         for line in pkg_template:
             if 'meta = {' in line:
                 meta_index = pkg_template.index(line)
-        pkg_template[meta_index+1] = '    description = "{}";'.format(pkg_json['meta']['desc'])
-        pkg_template[meta_index+2] = '    longDescription = "{}";'.format(pkg_json['meta']['long_desc'])
-        pkg_template[meta_index+3] = '    homepage = "{}";'.format(pkg_json['meta']['homepage'])
+            elif '  ";' in line:
+                build_input_index = pkg_template.index(line)
+        #pkg_template.insert(build_input_index, '\n')
+        pkg_template.insert(build_input_index+1, build_inputs)
+        pkg_template[meta_index+2] = '    description = "{}";'.format(pkg_json['meta']['desc'])
+        pkg_template[meta_index+3] = '    longDescription = "{}";'.format(pkg_json['meta']['long_desc'])
+        pkg_template[meta_index+4] = '    homepage = "{}";'.format(pkg_json['meta']['homepage'])
         self._write_package(pkg_template, pkg_json)
 
     def _write_package(self, pkg_template, pkg_json):
