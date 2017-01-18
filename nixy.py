@@ -7,7 +7,7 @@ import subprocess
 
 class Nixy(object):
     def __init__(self):
-        self._VERSION = '0.0.1'
+        self._VERSION = '1.0.0'
         self._process_args()
         self._verify_local_repo()
         self._execute()

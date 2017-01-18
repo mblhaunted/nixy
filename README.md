@@ -1,5 +1,5 @@
 # nixy
-nixy v0.0.1
+nixy v1.0.0
 
 # Summary
 
