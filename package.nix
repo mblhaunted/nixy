@@ -12,8 +12,8 @@ stdenv.mkDerivation rec {
 
   builder = builtins.toFile "builder.sh" "
     source $stdenv/setup
-
     mkdir -p $out
+    
     ";
 
   meta = {

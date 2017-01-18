@@ -107,7 +107,7 @@ class Pmpm(object):
         self._process_package(pkg_json)
 
     def _process_package(self, pkg_json):
-        pkg_template = [x.strip() for x in open('package.nix', 'r').readlines()]
+        pkg_template = [x.strip('\n') for x in open('package.nix', 'r').readlines()]
         src = pkg_json['src']
         pkg_template[4] = '  version = "{}";'.format(pkg_json['version'])
         pkg_template[5] = '  name = "{}'.format(pkg_json['name'])
@@ -122,14 +122,14 @@ class Pmpm(object):
         builder_index = 0
         for line in pkg_template:
             if 'builder =' in line:
-                builder_index = pkg_template.index(line) + 2
+                builder_index = pkg_template.index(line) + 3
         if pkg_json['bld'].get('script'):
             for step in pkg_json['bld']['script']:
                 pkg_template.insert(builder_index, '    {}'.format(step))
                 builder_index += 1
         else:
-            del(pkg_template[builder_index-2:builder_index+2])
-            pkg_template.insert(builder_index-2, '  builder = {}'.format(pkg_json['bld']['fp']))
+            del(pkg_template[builder_index-3:builder_index+2])
+            pkg_template.insert(builder_index-3, '  builder = {}'.format(pkg_json['bld']['fp']))
         line = pkg_template[0]
         end = line.index(':')
         new_line = line[:end-2]
@@ -158,7 +158,7 @@ class Pmpm(object):
         self._out('done writing package content ...')
         self._out('updating localrepo registry to include new package ...')
         base_nix_fp = '{}/default.nix'.format(repo_dir)
-        base_nix = [x.strip() for x in open(base_nix_fp, 'r').readlines()]
+        base_nix = [x.strip('\n') for x in open(base_nix_fp, 'r').readlines()]
         self_index = 0
         abort_write = False
         for line in base_nix:
