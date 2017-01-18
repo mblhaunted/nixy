@@ -4,8 +4,6 @@ v0.0.1alpha
 
 # Summary
 
-PMPM let's you package anything, quickly.
-
 PMPM is a set of tools around the Nix package manager designed to make packaging simple and reliable. 
 
 By taking advantage of Nix's deterministic package building, we can set dependencies with confidence.
