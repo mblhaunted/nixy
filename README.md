@@ -1,11 +1,9 @@
 # nixy
-nixy v0.0.1alpha
+nixy v0.0.1
 
 # Summary
 
 nixy makes it easy to create and manage deterministic nix packages.
-
-<color: red>Please note that this is alpha software, and will be changing over time.</color>
 
 # Requirements
 
