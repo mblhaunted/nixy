@@ -1,0 +1,20 @@
+{
+    "depends": {
+    },
+    "version": "0.0.1",
+    "name": "pmpm",
+    "src": "/package.tar.gz",
+    "src_sha256": "default",
+    "meta": {
+        "desc": "pmpm",
+        "long_desc": "pmpm!",
+        "homepage": "default"
+    },
+    "bld": {
+        "steps": true,
+        "script": ["ls -l", "ls -l $src", "echo hi > $out/hi.txt"],
+        "fp": "./builder.sh"
+    },
+    "symlinks": true,
+    "symlinks_home": true
+}
